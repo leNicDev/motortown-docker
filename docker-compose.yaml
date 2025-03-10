@@ -9,4 +9,7 @@ services:
       STEAM_PASSWORD: $STEAM_PASSWORD
     volumes:
       - ./DedicatedServerConfig.json:/app/DedicatedServerConfig.json
+    ports:
+      - 7777:7777
+      - 27015:27015
     restart: unless-stopped

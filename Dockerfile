@@ -60,5 +60,10 @@ COPY --chown=steam --chmod=755 ./scripts/entrypoint.sh /app/entrypoint.sh
 USER steam
 WORKDIR /app
 
+EXPOSE 7777/tcp
+EXPOSE 7777/udp
+EXPOSE 27015/tcp
+EXPOSE 27015/udp
+
 #on startup enter start.sh script
 ENTRYPOINT ["/tini", "--", "/app/entrypoint.sh"]
