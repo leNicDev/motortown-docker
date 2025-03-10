@@ -1,0 +1,12 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: motortown-server
+    environment:
+      STEAM_USERNAME: $STEAM_USERNAME
+      STEAM_PASSWORD: $STEAM_PASSWORD
+    volumes:
+      - ./DedicatedServerConfig.json:/app/DedicatedServerConfig.json
+    restart: unless-stopped
