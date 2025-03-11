@@ -54,9 +54,6 @@ RUN set -ex; \
     chown -R steam:steam /opt/steamcmd; \
     chown -R steam:steam /home/steam/.steam
 
-# Copy libs
-COPY --chown=steam ./lib/* /app/MotorTown/Binaries/Win64/
-
 # Copy entrypoint script
 COPY --chown=steam --chmod=755 ./scripts/entrypoint.sh /app/entrypoint.sh
 
