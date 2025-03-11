@@ -2,11 +2,14 @@ FROM debian:bullseye-slim
 
 ENV STEAM_APP_ID 2223650
 
-ENV _STEAM_COMPAT_TOOLS /home/steam/.steam/root/compatibilitytools.d
+ENV _STEAM_PATH /home/steam/.steam/steam
+ENV _STEAM_COMPAT_TOOLS $_STEAM_PATH/compatibilitytools.d
 ENV _PROTON_VERSION GE-Proton9-25
 ENV _PROTON_PATH $_STEAM_COMPAT_TOOLS/$_PROTON_VERSION
-ENV STEAM_COMPAT_DATA_PATH $_PROTON_PATH
-ENV STEAM_COMPAT_CLIENT_INSTALL_PATH ~/.steam/steam
+
+ENV STEAM_COMPAT_DATA_PATH $_STEAM_PATH/steamapps/compatdata/$STEAM_APP_ID
+ENV STEAM_COMPAT_CLIENT_INSTALL_PATH $_STEAM_PATH
+ENV PROTON $_PROTON_PATH/proton
 
 ENV PATH="$PATH:$_PROTON_PATH"
 
@@ -27,14 +30,16 @@ RUN set -ex; \
 RUN set -ex; \
     mkdir -p /opt/steamcmd; \
     cd /opt/steamcmd; \
-    curl "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
+    curl "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -; \
+    mkdir -p /opt/steamcmd/steamapps/compatdata/$STEAM_APP_ID
 
 # Download Proton GE
 RUN set -ex; \
     mkdir -p $_PROTON_PATH; \
     curl -sLOJ https://github.com/GloriousEggroll/proton-ge-custom/releases/download/${_PROTON_VERSION}/${_PROTON_VERSION}.tar.gz; \
     tar -xzf GE-Proton*.tar.gz -C $_PROTON_PATH --strip-components=1; \
-    rm GE-Proton*.tar.gz
+    rm GE-Proton*.tar.gz; \
+    cp -r $_PROTON_PATH/files/share/default_pfx /opt/steamcmd/steamapps/compatdata/$STEAM_APP_ID
 
 # Proton Fix machine-id
 RUN set -ex; \
