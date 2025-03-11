@@ -3,10 +3,8 @@
 # exit on error
 set -e
 
-mkdir -p "${STEAM_COMPAT_DATA_PATH}"
-
 # install or update server and verify files
-/opt/steamcmd/steamcmd.sh +@sSteamCmdForcePlatformType windows +force_install_dir /app +login ${STEAM_USERNAME} ${STEAM_PASSWORD} +app_update 1007 validate +app_update ${STEAM_APP_ID} -beta test -betapassword motortowndedi validate +quit
+$_STEAMCMD_PATH/steamcmd.sh +@sSteamCmdForcePlatformType windows +force_install_dir /app +login ${STEAM_USERNAME} ${STEAM_PASSWORD} +app_update 1007 validate +app_update ${STEAM_APP_ID} -beta test -betapassword motortowndedi validate +quit
 
 # copy steamclient.dll
 cp /app/*.dll /app/MotorTown/Binaries/Win64/

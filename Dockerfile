@@ -3,6 +3,7 @@ FROM debian:bullseye-slim
 ENV STEAM_APP_ID 2223650
 
 ENV _STEAM_PATH /home/steam/.steam/steam
+ENV _STEAMCMD_PATH /home/steam/.steam/steamcmd
 ENV _STEAM_COMPAT_TOOLS $_STEAM_PATH/compatibilitytools.d
 ENV _PROTON_VERSION GE-Proton9-25
 ENV _PROTON_PATH $_STEAM_COMPAT_TOOLS/$_PROTON_VERSION
@@ -18,28 +19,13 @@ ARG PGID=1000
 
 # Use users group for unraid
 RUN groupadd -g $PGID steam && useradd -d /home/steam -u $PUID -g $PGID -G users -m steam
-RUN mkdir /app
+RUN mkdir /app && chown -R steam:steam /app
 
 # Install required packages
 RUN set -ex; \
     dpkg --add-architecture i386; \
     apt update; \
     apt install -y --no-install-recommends wget curl jq sudo iproute2 procps software-properties-common dbus lib32gcc-s1 libfreetype6
-
-# Download steamcmd
-RUN set -ex; \
-    mkdir -p /opt/steamcmd; \
-    cd /opt/steamcmd; \
-    curl "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -; \
-    mkdir -p /opt/steamcmd/steamapps/compatdata/$STEAM_APP_ID
-
-# Download Proton GE
-RUN set -ex; \
-    mkdir -p $_PROTON_PATH; \
-    curl -sLOJ https://github.com/GloriousEggroll/proton-ge-custom/releases/download/${_PROTON_VERSION}/${_PROTON_VERSION}.tar.gz; \
-    tar -xzf GE-Proton*.tar.gz -C $_PROTON_PATH --strip-components=1; \
-    rm GE-Proton*.tar.gz; \
-    cp -r $_PROTON_PATH/files/share/default_pfx /opt/steamcmd/steamapps/compatdata/$STEAM_APP_ID
 
 # Proton Fix machine-id
 RUN set -ex; \
@@ -53,17 +39,26 @@ ARG TINI_VERSION=v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
 
-# Set permissions
+USER steam
+
+# Download steamcmd
 RUN set -ex; \
-    chown -R steam:steam /app; \
-    chown -R steam:steam /opt/steamcmd; \
-    chown -R steam:steam /home/steam/.steam
+    mkdir -p $_STEAMCMD_PATH; \
+    cd $_STEAMCMD_PATH; \
+    curl "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxf -
+
+# Download Proton GE
+RUN set -ex; \
+    mkdir -p $_PROTON_PATH; \
+    cd $_PROTON_PATH; \
+    curl -L "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/${_PROTON_VERSION}/${_PROTON_VERSION}.tar.gz" | tar zxf - --strip-components=1; \
+    mkdir -p $STEAM_COMPAT_DATA_PATH; \
+    cp -r $_PROTON_PATH/files/share/default_pfx $STEAM_COMPAT_DATA_PATH
+
+WORKDIR /app
 
 # Copy entrypoint script
 COPY --chown=steam --chmod=755 ./scripts/entrypoint.sh /app/entrypoint.sh
-
-USER steam
-WORKDIR /app
 
 EXPOSE 7777/tcp
 EXPOSE 7777/udp
